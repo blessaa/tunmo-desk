@@ -1,0 +1,52 @@
+appId: com.tunmo.desk
+productName: 图墨
+directories:
+  buildResources: build
+  output: dist
+files:
+  - '!**/.vscode/*'
+  - '!src/*'
+  - '!config/*'
+  - '!electron.vite.config.{js,ts,mjs,cjs}'
+  - '!{.eslintignore,.eslintrc.cjs,.prettierignore,.prettierrc.yaml,dev-app-update.yml,CHANGELOG.md,README.md}'
+  - '!{.env,.env.*,.npmrc,pnpm-lock.yaml}'
+  - '!{tsconfig.json,tsconfig.node.json,tsconfig.web.json}'
+  - '!.cursor/*'
+  - '!.github/*'
+extraResources:
+  - from: config/release.json
+    to: release.json
+asarUnpack:
+  - node_modules/@earendil-works/**
+  - node_modules/@silvia-odwyer/**
+  - node_modules/@mariozechner/**
+  - '**/*.node'
+  - '**/*.wasm'
+win:
+  executableName: tunmo-desk
+  target:
+    - nsis
+mac:
+  entitlementsInherit: build/entitlements.mac.plist
+  extendInfo:
+    - NSDocumentsFolderUsageDescription: 图墨需要访问工作目录
+    - NSDownloadsFolderUsageDescription: 图墨需要访问下载目录
+  target:
+    - dmg
+    - zip
+nsis:
+  artifactName: ${name}-${version}-setup.${ext}
+  shortcutName: ${productName}
+  uninstallDisplayName: ${productName}
+  createDesktopShortcut: always
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+dmg:
+  artifactName: ${name}-${version}.${ext}
+npmRebuild: false
+electronUpdaterCompatibility: '>= 2.16'
+publish:
+  provider: github
+  owner: blessaa
+  repo: tunmo-desk
+  releaseType: release

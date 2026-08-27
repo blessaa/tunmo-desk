@@ -1,0 +1,47 @@
+{
+  "name": "tunmo-desk",
+  "version": "0.1.0",
+  "description": "图墨桌面端",
+  "main": "./out/main/index.js",
+  "author": "tunmo",
+  "homepage": "https://github.com/blessaa/tunmo-desk",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/blessaa/tunmo-desk.git"
+  },
+  "scripts": {
+    "dev": "electron-vite dev",
+    "start": "electron-vite preview",
+    "build": "electron-vite build",
+    "typecheck:node": "tsc --noEmit -p tsconfig.node.json --composite false",
+    "typecheck:web": "vue-tsc --noEmit -p tsconfig.web.json --composite false",
+    "typecheck": "npm run typecheck:node && npm run typecheck:web",
+    "postinstall": "electron-builder install-app-deps",
+    "build:unpack": "npm run build && electron-builder --dir",
+    "build:win": "npm run build && electron-builder --win --config",
+    "build:mac": "npm run build && electron-builder --mac --config"
+  },
+  "dependencies": {
+    "@earendil-works/pi-coding-agent": "^0.84.3",
+    "@electron-toolkit/preload": "^3.0.2",
+    "@electron-toolkit/utils": "^4.0.0",
+    "@element-plus/icons-vue": "^2.3.2",
+    "electron-log": "^5.4.3",
+    "electron-updater": "^6.6.2",
+    "element-plus": "^2.11.2",
+    "pinia": "^3.0.3",
+    "vue": "^3.5.21",
+    "vue-router": "^4.5.1"
+  },
+  "devDependencies": {
+    "@electron-toolkit/tsconfig": "^1.0.1",
+    "@types/node": "^22.18.0",
+    "@vitejs/plugin-vue": "^6.0.1",
+    "electron": "^37.4.0",
+    "electron-builder": "^26.0.12",
+    "electron-vite": "^4.0.1",
+    "typescript": "^5.9.2",
+    "vite": "^7.1.5",
+    "vue-tsc": "^3.0.6"
+  }
+}

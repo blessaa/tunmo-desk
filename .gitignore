@@ -1,0 +1,23 @@
+node_modules
+out
+dist
+dist_electron
+.DS_Store
+*.log
+*.local
+.idea
+.vscode
+coverage
+release
+thumbs.db
+
+# electron-builder unpacked output must not live in the source tree
+/resources/
+/locales/
+/*.dll
+/*.exe
+/*.pak
+/*.bin
+/*.dat
+/LICENSE.electron.txt
+/LICENSES.chromium.html

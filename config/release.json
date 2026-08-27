@@ -1,0 +1,18 @@
+{
+  "appId": "com.tunmo.desk",
+  "productName": "图墨",
+  "github": {
+    "owner": "blessaa",
+    "repo": "tunmo-desk"
+  },
+  "gitee": {
+    "owner": "YOUR_GITEE_OWNER",
+    "repo": "tunmo-desk",
+    "updateUrl": "https://gitee.com/YOUR_GITEE_OWNER/tunmo-desk/releases/download"
+  },
+  "update": {
+    "source": "github",
+    "autoDownload": false,
+    "promptUser": true
+  }
+}
