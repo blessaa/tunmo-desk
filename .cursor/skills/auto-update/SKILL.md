@@ -2,7 +2,7 @@
 name: auto-update
 description: >-
   Configure this Electron desktop app so a new published version prompts the user
-  to update. Covers Windows/macOS installers, GitHub/Gitee Release, electron-updater,
+  to update. Covers Windows/macOS/Linux installers, GitHub/Gitee Release, electron-updater,
   and GitHub Actions. Use when working on 自动更新, electron-builder, electron-updater,
   安装包, Release, packaging, or the publish workflow.
 ---
@@ -17,7 +17,7 @@ description: >-
 
 Items 6 / 7 / 8 of the desktop skeleton:
 
-- 6 Windows/macOS 安装包
+- 6 Windows/macOS/Linux 安装包
 - 7 Release (GitHub/Gitee)
 - 8 自动更新（发现新版本时询问，不要静默安装）
 
@@ -29,8 +29,8 @@ Do not add a second packaging or update pipeline. Edit the files below.
 |------|------|
 | `config/release.json` | GitHub/Gitee owner/repo, update source, `promptUser` |
 | `package.json` `version` + `repository` | App version; GitHub owner/repo for electron-builder publish |
-| `electron-builder.yml` | NSIS / DMG+ZIP, `extraResources`, `publish.provider: github` |
-| `.github/workflows/release.yml` | Tag `v*.*.*` → Windows + macOS build → GitHub Release → optional Gitee |
+| `electron-builder.yml` | NSIS / DMG+ZIP / AppImage+deb, `extraResources`, `publish.provider: github` |
+| `.github/workflows/release.yml` | Tag `v*.*.*` → Windows + macOS + Linux build → GitHub Release → optional Gitee |
 
 Before the first real release, replace `YOUR_GITHUB_OWNER` / `YOUR_GITEE_OWNER` in `config/release.json` and `package.json` `repository` / `homepage`.
 
@@ -51,8 +51,8 @@ Dev (`npm run dev`) skips the check (`updater:dev-skip`).
 
 1. Bump `package.json` `version`
 2. Commit and tag `vX.Y.Z` matching that version
-3. Push the tag; Actions runs `build:win` / `build:mac` with `--publish always`
-4. electron-builder uploads installers plus `latest.yml` / `latest-mac.yml` (required by electron-updater)
+3. Push the tag; Actions runs `build:win` / `build:mac` / `build:linux` with `--publish always`
+4. electron-builder uploads installers plus `latest.yml` / `latest-mac.yml` / `latest-linux.yml` (required by electron-updater)
 5. If `GITEE_TOKEN` is set, `scripts/mirror-gitee.mjs` creates the Gitee release from `config/release.json`
 
 macOS auto-update needs a signed app; unsigned local builds will not update on macOS.

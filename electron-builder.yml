@@ -27,6 +27,7 @@ win:
   target:
     - nsis
 mac:
+  executableName: tunmo-desk
   entitlementsInherit: build/entitlements.mac.plist
   extendInfo:
     - NSDocumentsFolderUsageDescription: 图墨需要访问工作目录
@@ -34,6 +35,15 @@ mac:
   target:
     - dmg
     - zip
+  artifactName: ${name}-${version}-${arch}-mac.${ext}
+linux:
+  executableName: tunmo-desk
+  category: Development
+  maintainer: tunmo
+  target:
+    - AppImage
+    - deb
+  artifactName: ${name}-${version}.${ext}
 nsis:
   artifactName: ${name}-${version}-setup.${ext}
   shortcutName: ${productName}
@@ -50,3 +60,4 @@ publish:
   owner: blessaa
   repo: tunmo-desk
   releaseType: release
+  releaseName: tunmo-desk ${version}
