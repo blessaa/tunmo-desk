@@ -60,4 +60,3 @@ publish:
   owner: blessaa
   repo: tunmo-desk
   releaseType: release
-  releaseName: tunmo-desk ${version}
