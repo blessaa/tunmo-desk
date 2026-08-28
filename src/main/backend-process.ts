@@ -24,10 +24,14 @@ let handle: BackendHandle | null = null
 
 /**
  * 解析 tunmo-backend 根目录。
- * 安装包在 resources/tunmo-backend，开发环境在仓库 src/package。
+ * 安装包读 extraResources 里的 tunmo-backend.asar；开发环境读仓库 src/package。
  */
 export function backendRoot(): string {
-  if (app.isPackaged) return join(process.resourcesPath, 'tunmo-backend')
+  if (app.isPackaged) {
+    const asarRoot = join(process.resourcesPath, 'tunmo-backend.asar')
+    if (existsSync(join(asarRoot, 'dist/main.js'))) return asarRoot
+    return join(process.resourcesPath, 'tunmo-backend')
+  }
   return join(__dirname, '../../src/package')
 }
 
@@ -65,17 +69,17 @@ function apiKeyEnv(provider: string, apiKey: string): NodeJS.ProcessEnv {
 function resolveEntry(root: string): { args: string[]; missing: string } {
   /** 打包/本地 build 后的入口。 */
   const distEntry = join(root, 'dist/main.js')
-  /** 后端运行依赖；安装包必须单独 extraResources 拷贝，否则 dist 能找到但进程秒退。 */
-  const runtimeDep = join(root, 'node_modules/fastify')
+  /** Pi 必须能在后端目录里解析到；Fastify 已打进 dist/main.js。 */
+  const piEntry = join(root, 'node_modules/@earendil-works/pi-coding-agent/dist/rpc-entry.js')
   /** tsx CLI，用来在开发时直接跑 TypeScript。 */
   const tsxCli = join(root, 'node_modules/tsx/dist/cli.mjs')
   /** 后端 TypeScript 入口。 */
   const srcEntry = join(root, 'src/main.ts')
   if (existsSync(distEntry)) {
-    if (!existsSync(runtimeDep)) {
+    if (!existsSync(piEntry)) {
       return {
         args: [],
-        missing: `tunmo-backend 缺少 node_modules（${runtimeDep}）。安装包 extraResources 需要单独拷贝后端依赖`
+        missing: `tunmo-backend 缺少 Pi（${piEntry}）。请先执行 npm run backend:build`
       }
     }
     return { args: [distEntry], missing: '' }
@@ -84,7 +88,7 @@ function resolveEntry(root: string): { args: string[]; missing: string } {
   return {
     args: [],
     missing: existsSync(root)
-      ? 'tunmo-backend 未构建。请在 src/package 执行 npm install 与 npm run build'
+      ? 'tunmo-backend 未构建。请在仓库根目录执行 npm run backend:build'
       : `找不到 tunmo-backend：${root}`
   }
 }
@@ -161,6 +165,7 @@ export async function startBackend(): Promise<BackendHandle> {
     LOG_LEVEL: 'info',
     AUTH_TOKEN: '',
     ALLOWED_ORIGINS: '',
+    TUNMO_DESK_EMBEDDED: '1',
     PI_CWD_ROOT: cwdRoot,
     PI_DEFAULT_CWD: cwdRoot,
     ...apiKeyEnv(settings.provider, settings.apiKey)
@@ -174,9 +179,11 @@ export async function startBackend(): Promise<BackendHandle> {
   }
 
   log.info('[backend] spawn', process.execPath, entry.args.join(' '), `port=${port}`)
+  /** asar 不能作为 cwd；开发用后端目录，安装包用 resources。 */
+  const cwd = app.isPackaged ? process.resourcesPath : root
   /** 实际的 tunmo-backend 子进程。 */
   const child = spawn(process.execPath, entry.args, {
-    cwd: root,
+    cwd,
     env,
     stdio: ['ignore', 'pipe', 'pipe'],
     windowsHide: true

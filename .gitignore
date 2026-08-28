@@ -11,6 +11,8 @@ coverage
 release
 thumbs.db
 src/package/.env
+/build/tunmo-backend.asar
+/build/tunmo-backend.asar.unpacked
 
 # electron-builder unpacked output must not live in the source tree
 /resources/

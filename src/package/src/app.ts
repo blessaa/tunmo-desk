@@ -1,8 +1,6 @@
 import Fastify, { type FastifyInstance } from "fastify";
 import { randomUUID } from "node:crypto";
 import websocket from "@fastify/websocket";
-import swagger from "@fastify/swagger";
-import swaggerUi from "@fastify/swagger-ui";
 import type { AppConfig } from "./config.js";
 import { ConversationManager } from "./application/conversation-manager.js";
 import { DomainError, publicErrorFrom } from "./domain/errors.js";
@@ -10,13 +8,14 @@ import { ChildProcessPiAdapter } from "./infrastructure/pi/child-process-pi-adap
 import { withPiConcurrencyLimit } from "./infrastructure/pi/concurrency-limited-pi-adapter.js";
 import type { PiRuntimeFactory } from "./infrastructure/pi/pi-runtime.js";
 import { JsonRpcDispatcher } from "./transport/rpc-dispatcher.js";
-import { jsonRpcDocumentationBodySchema, openApiComponents } from "./transport/openapi.js";
 import { registerRoutes } from "./transport/routes.js";
 
 export interface BuildAppOptions {
   config: AppConfig;
   runtimeFactory?: PiRuntimeFactory;
   logger?: boolean;
+  /** 桌面端内嵌时不挂 Swagger，避免把文档静态资源打进安装包。 */
+  skipDocs?: boolean;
 }
 
 export async function buildApp(options: BuildAppOptions): Promise<FastifyInstance> {
@@ -54,33 +53,61 @@ export async function buildApp(options: BuildAppOptions): Promise<FastifyInstanc
     void reply.code(statusCode).send({ error: publicError });
   });
 
-  await fastify.register(swagger, {
-    openapi: {
-      info: {
-        title: "Tunmo 对话后端接口文档",
-        description:
-          "基于 Fastify、WebSocket JSON-RPC 与 Pi RPC 的对话服务。所有说明、请求字段和响应模型均以中文描述。HTTP RPC 用于 Swagger 调试；实时增量通过 WebSocket notification 推送。",
-        version: "1.0.0",
+  if (!options.skipDocs) {
+    const [{ default: swagger }, { default: swaggerUi }, { jsonRpcDocumentationBodySchema, openApiComponents }] =
+      await Promise.all([
+        import("@fastify/swagger"),
+        import("@fastify/swagger-ui"),
+        import("./transport/openapi.js"),
+      ]);
+    await fastify.register(swagger, {
+      openapi: {
+        info: {
+          title: "Tunmo 对话后端接口文档",
+          description:
+            "基于 Fastify、WebSocket JSON-RPC 与 Pi RPC 的对话服务。所有说明、请求字段和响应模型均以中文描述。HTTP RPC 用于 Swagger 调试；实时增量通过 WebSocket notification 推送。",
+          version: "1.0.0",
+        },
+        tags: [
+          { name: "服务状态", description: "服务存活与就绪检查。" },
+          { name: "身份认证", description: "WebSocket 短时一次性 ticket。" },
+          { name: "对话 JSON-RPC", description: "对话命令、查询与 WebSocket 协议信息。" },
+        ],
+        components: openApiComponents as never,
       },
-      tags: [
-        { name: "服务状态", description: "服务存活与就绪检查。" },
-        { name: "身份认证", description: "WebSocket 短时一次性 ticket。" },
-        { name: "对话 JSON-RPC", description: "对话命令、查询与 WebSocket 协议信息。" },
-      ],
-      components: openApiComponents as never,
-    },
-    transformObject: (documentObject) => {
-      if ("swaggerObject" in documentObject) return documentObject.swaggerObject;
-      const document = documentObject.openapiObject;
-      const operation = document.paths?.["/api/v1/agent/rpc"]?.post;
-      if (!operation || "$ref" in operation) return document;
-      const requestBody = operation.requestBody;
-      if (!requestBody || "$ref" in requestBody) return document;
-      const mediaType = requestBody.content["application/json"];
-      if (mediaType) mediaType.schema = jsonRpcDocumentationBodySchema;
-      return document;
-    },
-  });
+      transformObject: (documentObject) => {
+        if ("swaggerObject" in documentObject) return documentObject.swaggerObject;
+        const document = documentObject.openapiObject;
+        const operation = document.paths?.["/api/v1/agent/rpc"]?.post;
+        if (!operation || "$ref" in operation) return document;
+        const requestBody = operation.requestBody;
+        if (!requestBody || "$ref" in requestBody) return document;
+        const mediaType = requestBody.content["application/json"];
+        if (mediaType) mediaType.schema = jsonRpcDocumentationBodySchema;
+        return document;
+      },
+    });
+    await fastify.register(swaggerUi, {
+      routePrefix: "/documentation",
+      uiConfig: {
+        docExpansion: "list",
+        deepLinking: true,
+        displayRequestDuration: true,
+        persistAuthorization: true,
+      },
+      staticCSP: true,
+      transformStaticCSP: (header) => header.replace(/\s*upgrade-insecure-requests;?/gu, ""),
+    });
+    fastify.get(
+      "/api/v1/openapi.json",
+      {
+        schema: {
+          hide: true,
+        },
+      },
+      async () => fastify.swagger(),
+    );
+  }
 
   await fastify.register(websocket, {
     options: {
@@ -123,30 +150,6 @@ export async function buildApp(options: BuildAppOptions): Promise<FastifyInstanc
   });
 
   await registerRoutes(fastify, dispatcher, options.config);
-
-  await fastify.register(swaggerUi, {
-    routePrefix: "/documentation",
-    uiConfig: {
-      docExpansion: "list",
-      deepLinking: true,
-      displayRequestDuration: true,
-      persistAuthorization: true,
-    },
-    staticCSP: true,
-    // 局域网以 HTTP 访问时，upgrade-insecure-requests 会把 Swagger 静态资源
-    // 强制升级为 HTTPS，导致页面只有 HTML 但无法加载 JS/CSS。
-    transformStaticCSP: (header) => header.replace(/\s*upgrade-insecure-requests;?/gu, ""),
-  });
-
-  fastify.get(
-    "/api/v1/openapi.json",
-    {
-      schema: {
-        hide: true,
-      },
-    },
-    async () => fastify.swagger(),
-  );
 
   fastify.addHook("onClose", async () => conversations.closeAll());
   await fastify.ready();

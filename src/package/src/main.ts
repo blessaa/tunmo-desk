@@ -3,7 +3,8 @@ import { buildApp } from "./app.js";
 import { loadConfig } from "./config.js";
 
 const config = loadConfig();
-const app = await buildApp({ config });
+const skipDocs = process.env.TUNMO_DESK_EMBEDDED === "1";
+const app = await buildApp({ config, skipDocs });
 
 const shutdown = async (signal: NodeJS.Signals): Promise<void> => {
   app.log.info({ signal }, "正在关闭 tunmo-backend");
@@ -17,7 +18,10 @@ process.once("SIGTERM", () => void shutdown("SIGTERM"));
 try {
   await app.listen({ host: config.host, port: config.port });
   app.log.info(
-    { address: app.server.address(), swagger: `http://${config.host}:${config.port}/documentation` },
+    {
+      address: app.server.address(),
+      ...(skipDocs ? {} : { swagger: `http://${config.host}:${config.port}/documentation` }),
+    },
     "tunmo-backend 已启动",
   );
 } catch (error) {

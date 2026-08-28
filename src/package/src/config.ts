@@ -1,4 +1,5 @@
-import { resolve, sep } from "node:path";
+import { dirname, join, resolve, sep } from "node:path";
+import { existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
 export interface AppConfig {
@@ -60,6 +61,16 @@ function parseArgs(value: string | undefined, fallback: string[]): string[] {
   return parsed;
 }
 
+function resolvePiRpcEntry(): string {
+  const packageRoot = join(dirname(fileURLToPath(import.meta.url)), "..");
+  const bundled = join(
+    packageRoot,
+    "node_modules/@earendil-works/pi-coding-agent/dist/rpc-entry.js",
+  );
+  if (existsSync(bundled)) return bundled;
+  return fileURLToPath(import.meta.resolve("@earendil-works/pi-coding-agent/rpc-entry"));
+}
+
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
   const startupCwd = process.cwd();
   const cwdRoot = resolve(optional(env.PI_CWD_ROOT) ?? startupCwd);
@@ -73,7 +84,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
   const provider = optional(env.PI_PROVIDER);
   const model = optional(env.PI_MODEL);
   const externalPiCommand = optional(env.PI_RPC_COMMAND);
-  const packagedPiRpcEntry = fileURLToPath(import.meta.resolve("@earendil-works/pi-coding-agent/rpc-entry"));
+  const packagedPiRpcEntry = resolvePiRpcEntry();
   if ((provider && !model) || (!provider && model)) {
     throw new Error("PI_PROVIDER 与 PI_MODEL 必须同时配置或同时省略");
   }

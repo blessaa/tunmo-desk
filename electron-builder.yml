@@ -13,6 +13,8 @@ files:
   - '!{tsconfig.json,tsconfig.node.json,tsconfig.web.json}'
   - '!.cursor/*'
   - '!.github/*'
+  - '!build/tunmo-backend.asar'
+  - '!build/tunmo-backend.asar.unpacked{,/**}'
   - '!resources{,/**}'
   - '!locales{,/**}'
   - '!*.dll'
@@ -26,19 +28,12 @@ files:
 extraResources:
   - from: config/release.json
     to: release.json
-  # electron-builder 的 extraResources 过滤器会丢掉拷贝根上的 node_modules
-  # （它假定依赖由主应用 asar 收集）。后端是独立 Node 进程，必须再拷一份。
-  - from: src/package
-    to: tunmo-backend
-    filter:
-      - '**/*'
-      - '!vendor{,/**}'
-      - '!src{,/**}'
-      - '!test{,/**}'
-      - '!docs{,/**}'
-      - '!node_modules{,/**}'
-  - from: src/package/node_modules
-    to: tunmo-backend/node_modules
+  # 后端源码 esbuild 打成 dist/main.js，再和 Pi 的 node_modules 一起打进一份 asar。
+  # extraResources 只拷这一份归档，避免 Windows 上拷两万个散文件。
+  - from: build/tunmo-backend.asar
+    to: tunmo-backend.asar
+  - from: build/tunmo-backend.asar.unpacked
+    to: tunmo-backend.asar.unpacked
 asarUnpack:
   - '**/*.node'
   - '**/*.wasm'
@@ -48,7 +43,6 @@ win:
     - target: nsis
       arch:
         - x64
-        - ia32
   artifactName: ${name}-${version}-${arch}-setup.${ext}
 mac:
   executableName: tunmo-desk

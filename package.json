@@ -1,6 +1,6 @@
 {
   "name": "tunmo-desk",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "description": "图墨桌面端",
   "main": "./out/main/index.js",
   "author": "tunmo",
@@ -11,7 +11,9 @@
   },
   "scripts": {
     "backend:prepare": "npm install --ignore-scripts --prefix src/package",
-    "backend:build": "npm run backend:prepare && npm run build --prefix src/package && npm prune --omit=dev --prefix src/package",
+    "backend:bundle": "node scripts/bundle-backend.mjs",
+    "backend:asar": "node scripts/pack-backend-asar.mjs",
+    "backend:build": "npm run backend:prepare && npm run backend:bundle && npm prune --omit=dev --prefix src/package && npm run backend:asar",
     "dev": "npm run backend:prepare && electron-vite dev",
     "start": "electron-vite preview",
     "build": "npm run backend:build && electron-vite build",
@@ -20,7 +22,7 @@
     "typecheck": "npm run typecheck:node && npm run typecheck:web",
     "postinstall": "electron-builder install-app-deps",
     "build:unpack": "npm run build && electron-builder --dir",
-    "build:win": "npm run build && electron-builder --win --x64 --ia32 --config",
+    "build:win": "npm run build && electron-builder --win --x64 --config",
     "build:mac": "npm run build && electron-builder --mac --config",
     "build:linux": "npm run build && electron-builder --linux --config",
     "release:check": "node scripts/check-release-version.mjs"
@@ -38,11 +40,13 @@
   },
   "devDependencies": {
     "@electron-toolkit/tsconfig": "^1.0.1",
+    "@electron/asar": "^3.4.1",
     "@types/node": "^22.18.0",
     "@vitejs/plugin-vue": "^6.0.1",
     "electron": "^37.4.0",
     "electron-builder": "^26.0.12",
     "electron-vite": "^4.0.1",
+    "esbuild": "^0.25.12",
     "typescript": "^5.9.2",
     "vite": "^7.1.5",
     "vue-tsc": "^3.0.6"
