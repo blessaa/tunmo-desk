@@ -1,6 +1,6 @@
 {
   "name": "tunmo-desk",
-  "version": "0.3.1",
+  "version": "0.4.0",
   "description": "图墨桌面端",
   "main": "./out/main/index.js",
   "author": "tunmo",
@@ -10,9 +10,11 @@
     "url": "https://github.com/blessaa/tunmo-desk.git"
   },
   "scripts": {
-    "dev": "electron-vite dev",
+    "backend:prepare": "npm install --ignore-scripts --prefix src/package",
+    "backend:build": "npm run backend:prepare && npm run build --prefix src/package",
+    "dev": "npm run backend:prepare && electron-vite dev",
     "start": "electron-vite preview",
-    "build": "electron-vite build",
+    "build": "npm run backend:build && electron-vite build",
     "typecheck:node": "tsc --noEmit -p tsconfig.node.json --composite false",
     "typecheck:web": "vue-tsc --noEmit -p tsconfig.web.json --composite false",
     "typecheck": "npm run typecheck:node && npm run typecheck:web",
@@ -24,7 +26,6 @@
     "release:check": "node scripts/check-release-version.mjs"
   },
   "dependencies": {
-    "@earendil-works/pi-coding-agent": "^0.84.3",
     "@electron-toolkit/preload": "^3.0.2",
     "@electron-toolkit/utils": "^4.0.0",
     "@element-plus/icons-vue": "^2.3.2",

@@ -1,0 +1,15 @@
+{
+  "upstream": "https://github.com/earendil-works/pi",
+  "license": "MIT",
+  "codingAgentPackage": "@earendil-works/pi-coding-agent",
+  "codingAgentVersion": "0.84.1",
+  "runtimePackages": [
+    "coding-agent",
+    "agent",
+    "ai",
+    "client",
+    "protocol",
+    "tui",
+    "telemetry"
+  ]
+}

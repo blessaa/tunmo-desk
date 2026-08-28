@@ -1,3 +1,4 @@
+/* 图墨暗色主题 token，各组件用 var(--tm-*) 引用。 */
 :root {
   --tm-bg: #0f1115;
   --tm-sidebar: #14161c;

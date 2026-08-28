@@ -1,6 +1,11 @@
+/**
+ * 预加载脚本：在隔离的渲染进程里暴露 window.tunmo。
+ * 渲染进程不能直接 require('electron')，所有主进程能力都从这里走 IPC。
+ */
 import { contextBridge, ipcRenderer } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
 
+/** 挂到 window.tunmo 上的桌面端 API。 */
 const api = {
   settings: {
     get: () => ipcRenderer.invoke('settings:get'),
@@ -38,6 +43,7 @@ const api = {
     download: () => ipcRenderer.invoke('updater:download'),
     install: () => ipcRenderer.invoke('updater:install'),
     on: (callback: (channel: string, payload?: unknown) => void) => {
+      /** 主进程会推的全部更新频道。 */
       const channels = [
         'updater:checking',
         'updater:available',
@@ -47,6 +53,7 @@ const api = {
         'updater:error',
         'updater:dev-skip'
       ]
+      /** 每个频道对应的监听器，卸载时要成对 remove。 */
       const handlers = channels.map((channel) => {
         const listener = (_event: unknown, payload: unknown) => callback(channel, payload)
         ipcRenderer.on(channel, listener)
@@ -69,7 +76,7 @@ if (process.contextIsolated) {
     console.error(error)
   }
 } else {
-  // @ts-ignore
+  // @ts-ignore 未开 contextIsolation 时的回退（本应用默认是开的）
   window.electron = electronAPI
   // @ts-ignore
   window.tunmo = api

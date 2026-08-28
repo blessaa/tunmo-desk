@@ -1,3 +1,7 @@
+/**
+ * Electron 主进程入口。
+ * 负责开窗口、注册 IPC、拉起 tunmo-backend、配置自动更新。
+ */
 import './user-data'
 import { app, shell, BrowserWindow, ipcMain } from 'electron'
 import { join } from 'node:path'
@@ -17,7 +21,9 @@ import {
 } from './pi-agent'
 import { checkForUpdates, downloadUpdate, quitAndInstall, setupUpdater, stopUpdateChecks } from './updater'
 
+/** 创建主窗口：隔离渲染进程，只能通过 preload 的 window.tunmo 调主进程。 */
 function createWindow(): void {
+  /** 唯一的应用窗口。 */
   const mainWindow = new BrowserWindow({
     width: 1280,
     height: 840,
@@ -50,9 +56,11 @@ function createWindow(): void {
   }
 }
 
+/** 注册渲染进程可调用的 IPC。名字和 preload 里 window.tunmo 一一对应。 */
 function registerIpc(): void {
   ipcMain.handle('settings:get', () => loadSettings())
   ipcMain.handle('settings:set', async (_e, partial) => {
+    /** 合并写入后的完整设置。 */
     const next = saveSettings(partial)
     if (partial?.apiKey || partial?.provider || partial?.modelId) {
       await applySettingsToRuntime()
@@ -61,6 +69,7 @@ function registerIpc(): void {
   })
 
   ipcMain.handle('workspace:open', async () => {
+    /** 用户选中的文件夹；取消则为空。 */
     const path = await pickWorkspace()
     if (!path) return loadSettings()
     const settings = saveSettings({ workspacePath: path })
@@ -81,7 +90,9 @@ function registerIpc(): void {
       event,
       command: { id?: string; sessionId?: string; type: string; message: string }
     ) => {
+      /** 侧边栏对话 id；缺省走 default。 */
       const sessionId = command.sessionId || 'default'
+      /** 把流式事件推回发起这次发送的窗口。 */
       const emit = (streamEvent: ChatStreamEvent): void => {
         event.sender.send('chat:stream', streamEvent)
       }
@@ -103,6 +114,7 @@ app.whenReady().then(() => {
   registerIpc()
   setupUpdater()
   createWindow()
+  // 窗口起来后拉起 src/package 的 tunmo-backend，失败只反映在状态灯上
   void startPiAgent()
 
   app.on('activate', () => {
@@ -112,6 +124,8 @@ app.whenReady().then(() => {
 
 app.on('before-quit', () => {
   stopUpdateChecks()
+  // 退出前杀掉 tunmo-backend 及其 Pi 子进程
+  stopPiAgent()
 })
 
 app.on('window-all-closed', () => {

@@ -17,7 +17,7 @@
 
     <div ref="listRef" class="messages scroll">
       <div v-if="!chat.active?.messages.length" class="hero muted">
-        向图墨提问。协议是 pi RPC 的 prompt 命令：{"type":"prompt","message":"..."}。请先选择模型。
+        向图墨提问。请先选择模型。后端是 tunmo-backend（WebSocket JSON-RPC）。
       </div>
 
       <article v-for="msg in chat.active?.messages" :key="msg.id" class="msg" :class="msg.role">
@@ -48,6 +48,7 @@ import ToolEventCard from './ToolEventCard.vue'
 import UpdateBanner from './UpdateBanner.vue'
 
 const chat = useChatStore()
+/** 消息列表容器，用来滚到底部。 */
 const listRef = ref<HTMLElement | null>(null)
 
 watch(
@@ -62,6 +63,7 @@ watch(
   }
 )
 
+/** Enter 发送，Shift+Enter 换行。 */
 function onComposerKeydown(event: Event): void {
   const keyEvent = event as KeyboardEvent
   if (keyEvent.key === 'Enter' && !keyEvent.shiftKey) {
@@ -70,6 +72,7 @@ function onComposerKeydown(event: Event): void {
   }
 }
 
+/** 表单提交：把当前输入发给 chat store。 */
 function onSend(): void {
   void chat.send()
 }

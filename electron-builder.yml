@@ -26,10 +26,15 @@ files:
 extraResources:
   - from: config/release.json
     to: release.json
+  - from: src/package
+    to: tunmo-backend
+    filter:
+      - '**/*'
+      - '!vendor{,/**}'
+      - '!src{,/**}'
+      - '!test{,/**}'
+      - '!docs{,/**}'
 asarUnpack:
-  - node_modules/@earendil-works/**
-  - node_modules/@silvia-odwyer/**
-  - node_modules/@mariozechner/**
   - '**/*.node'
   - '**/*.wasm'
 win:

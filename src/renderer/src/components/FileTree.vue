@@ -21,21 +21,27 @@ defineOptions({ name: 'FileTree' })
 
 const props = withDefaults(
   defineProps<{
+    /** 这一层要渲染的节点。 */
     nodes: FileNode[]
+    /** 初始展开的路径（通常是工作区根）。 */
     defaultExpanded?: string[]
   }>(),
   { defaultExpanded: () => [] }
 )
 
+/** 路径 → 是否展开。 */
 const expanded = reactive<Record<string, boolean>>(
   Object.fromEntries(props.defaultExpanded.map((path) => [path, true]))
 )
+/** 懒加载得到的子节点缓存。 */
 const loaded = reactive<Record<string, FileNode[]>>({})
 
+/** 取某目录的子节点：优先已加载的，否则用 props 自带的 children。 */
 function childrenOf(node: FileNode): FileNode[] {
   return loaded[node.path] ?? node.children ?? []
 }
 
+/** 点文件夹：收起，或展开并在需要时向主进程要下一层。 */
 async function toggle(node: FileNode): Promise<void> {
   if (node.type !== 'directory') return
   if (expanded[node.path]) {

@@ -19,16 +19,19 @@ import { useUpdaterStore } from '@renderer/stores/updater'
 
 const updater = useUpdaterStore()
 
+/** 有新版本且用户没点「稍后」才显示。 */
 const show = computed(() => {
   if (updater.dismissed) return false
   return ['available', 'downloading', 'ready'].includes(updater.status)
 })
 
+/** 「发现新版本 0.3.1」里的版本号部分。 */
 const versionText = computed(() => {
   const version = updater.info?.version
   return version ? ` ${version}` : ''
 })
 
+/** 横幅副文案：下载进度或安装提示。 */
 const hint = computed(() => {
   if (updater.status === 'downloading') {
     return `正在下载 ${Math.round(updater.progress?.percent ?? 0)}%`

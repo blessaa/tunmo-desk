@@ -14,6 +14,7 @@
 import type { ToolEvent } from '@renderer/api/chat-stream'
 
 defineProps<{
+  /** 一次工具调用的名称、参数和结果。 */
   event: ToolEvent
 }>()
 </script>

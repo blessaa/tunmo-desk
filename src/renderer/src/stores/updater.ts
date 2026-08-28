@@ -1,17 +1,26 @@
+/**
+ * 聊天顶栏更新横幅的状态。事件来自主进程 electron-updater。
+ */
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { ElMessage } from 'element-plus'
 import type { UpdateInfo, UpdateProgress } from '../../../preload/index.d'
 
 export const useUpdaterStore = defineStore('updater', () => {
+  /** 检查 / 可更新 / 下载中 / 已下完 / 无更新。 */
   const status = ref<'idle' | 'checking' | 'available' | 'downloading' | 'ready' | 'none' | 'error'>(
     'idle'
   )
+  /** 新版本号等信息。 */
   const info = ref<UpdateInfo | null>(null)
+  /** 下载百分比。 */
   const progress = ref<UpdateProgress | null>(null)
+  /** 内部错误缓存，界面不展示堆栈。 */
   const error = ref('')
+  /** 用户点了「稍后」，本版本横幅先藏起来。 */
   const dismissed = ref(false)
 
+  /** 订阅主进程更新频道，返回取消订阅函数。 */
   function bind(): () => void {
     return window.tunmo.updater.on((channel, payload) => {
       if (channel === 'updater:checking') {
@@ -49,6 +58,7 @@ export const useUpdaterStore = defineStore('updater', () => {
     })
   }
 
+  /** 已下完则安装并重启；否则先下载。 */
   async function installNow(): Promise<void> {
     try {
       if (status.value === 'ready') {
@@ -64,6 +74,7 @@ export const useUpdaterStore = defineStore('updater', () => {
     }
   }
 
+  /** 关掉横幅，下次发现更新再出现。 */
   function later(): void {
     dismissed.value = true
   }

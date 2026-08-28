@@ -1,7 +1,12 @@
+/**
+ * 把主进程 chat:stream 事件填进气泡：增量文字、工具卡片、结束/错误。
+ */
 import { extractMessageText, makePromptCommand, type PiRpcWireEvent } from '@shared/pi-rpc'
 
+/** 工具卡片的四种展示状态。 */
 export type ToolEventStatus = 'start' | 'running' | 'result' | 'error'
 
+/** 一条助手消息里的一次工具调用。 */
 export interface ToolEvent {
   id: string
   name: string
@@ -10,6 +15,7 @@ export interface ToolEvent {
   result?: string
 }
 
+/** 聊天气泡。 */
 export interface ChatMessage {
   id: string
   role: 'user' | 'assistant'
@@ -19,6 +25,7 @@ export interface ChatMessage {
   createdAt: number
 }
 
+/** sendChatStream 用来更新 UI 的回调。 */
 export interface ChatStreamHandlers {
   onText: (delta: string) => void
   onTool: (event: ToolEvent) => void
@@ -26,10 +33,12 @@ export interface ChatStreamHandlers {
   onError: (message: string) => void
 }
 
+/** 从 message_end 的 content 抽出全文（没有 text_delta 时用）。 */
 function extractText(content: unknown): string {
   return extractMessageText(content)
 }
 
+/** 工具参数/结果转成可放进 <pre> 的字符串。 */
 function compact(value: unknown): string | undefined {
   if (value == null) return undefined
   if (typeof value === 'string') return value
@@ -40,6 +49,10 @@ function compact(value: unknown): string | undefined {
   }
 }
 
+/**
+ * 发一条消息并订阅流式事件，直到 IPC 返回。
+ * workspacePath / apiKey 由主进程读 settings，这里只为保持调用形状。
+ */
 export async function sendChatStream(
   payload: { sessionId: string; message: string; workspacePath: string; apiKey: string },
   handlers: ChatStreamHandlers
@@ -54,7 +67,9 @@ export async function sendChatStream(
 
   const command = makePromptCommand(payload.message, payload.sessionId)
   console.log('[pi-rpc] send', command)
+  /** 已经收到过增量则不再用 message_end 整段覆盖，避免重复。 */
   let gotTextDelta = false
+  /** 已经报过的错误文案，防止 onError 连打两次。 */
   let reportedError = ''
 
   const fail = (message: string): void => {
@@ -63,6 +78,7 @@ export async function sendChatStream(
     handlers.onError(message)
   }
 
+  /** 取消 chat:stream 监听。 */
   const off = window.tunmo.chat.onEvent((event: PiRpcWireEvent) => {
     const eventSession = (event as { sessionId?: string }).sessionId
     if (eventSession && eventSession !== payload.sessionId) return

@@ -62,7 +62,7 @@
     </div>
 
     <footer class="side-foot">
-      <div class="rpc" :title="workspace.rpc.lastError || 'pi SDK 嵌入 Electron 主进程'">
+      <div class="rpc" :title="workspace.rpc.lastError || 'tunmo-backend'">
         <span class="dot" :class="workspace.rpc.status" />
         <span>pi · {{ rpcLabel }}</span>
       </div>
@@ -85,9 +85,12 @@ import type { FileNode } from '../../../preload/index.d'
 const workspace = useWorkspaceStore()
 const settings = useSettingsStore()
 const chat = useChatStore()
+/** 会话区是否展开。 */
 const sessionsOpen = ref(true)
+/** 工作区文件树是否展开。 */
 const workspaceOpen = ref(true)
 
+/** 把工作区根包装成 FileTree 要的单根节点。 */
 const workspaceRoot = computed<FileNode[]>(() => {
   if (!workspace.path) return []
   return [
@@ -100,6 +103,7 @@ const workspaceRoot = computed<FileNode[]>(() => {
   ]
 })
 
+/** 新建对话并聚焦输入框。 */
 async function onNewChat(): Promise<void> {
   chat.newChat()
   sessionsOpen.value = true
@@ -107,6 +111,7 @@ async function onNewChat(): Promise<void> {
   document.querySelector<HTMLTextAreaElement>('.chat-pane textarea')?.focus()
 }
 
+/** 左下角状态灯文案。 */
 const rpcLabel = computed(() => {
   if (workspace.rpc.status === 'running') {
     return workspace.rpc.modelName || '无模型'
@@ -114,7 +119,7 @@ const rpcLabel = computed(() => {
   const map = {
     idle: '未启动',
     starting: '启动中',
-    running: '已嵌入',
+    running: '已连接',
     missing: '未安装',
     error: '异常'
   }

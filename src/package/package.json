@@ -1,0 +1,57 @@
+{
+  "name": "tunmo-backend",
+  "version": "0.1.0",
+  "private": false,
+  "description": "基于 Fastify、WebSocket JSON-RPC 与 Pi RPC 的对话后端",
+  "license": "UNLICENSED",
+  "type": "module",
+  "bin": {
+    "tunmo-backend": "dist/main.js"
+  },
+  "files": [
+    "dist",
+    "src",
+    "vendor",
+    "scripts",
+    "docs",
+    ".env.example",
+    "README.md",
+    "THIRD_PARTY_NOTICES.md",
+    "tsconfig.json",
+    "tsconfig.build.json"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=22.19.0"
+  },
+  "scripts": {
+    "dev": "tsx watch src/main.ts",
+    "build": "tsc -p tsconfig.build.json",
+    "start": "node --env-file-if-exists=.env dist/main.js",
+    "check": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "vendor:pi": "node scripts/vendor-pi.mjs",
+    "verify:pi-vendor": "node scripts/verify-pi-vendor.mjs",
+    "smoke:package": "node scripts/smoke-package.mjs",
+    "prepack": "npm run build && npm run verify:pi-vendor",
+    "prepublishOnly": "npm run check && npm test"
+  },
+  "dependencies": {
+    "@earendil-works/pi-coding-agent": "0.84.1",
+    "@fastify/swagger": "9.8.1",
+    "@fastify/swagger-ui": "6.1.1",
+    "@fastify/websocket": "11.3.0",
+    "fastify": "5.12.1"
+  },
+  "devDependencies": {
+    "@types/node": "26.4.0",
+    "@types/ws": "8.18.1",
+    "tsx": "4.23.12",
+    "typescript": "5.9.3",
+    "vitest": "4.1.11",
+    "ws": "8.21.3"
+  }
+}

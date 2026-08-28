@@ -20,9 +20,11 @@
           <el-select
             v-model="settings.modelId"
             filterable
+            allow-create
+            default-first-option
             style="width: 100%"
             :loading="settings.loadingModels"
-            :placeholder="settings.apiKey ? '选择一个模型' : '先填写 API Key'"
+            :placeholder="settings.apiKey ? '选择或输入模型 ID' : '先填写 API Key'"
           >
             <el-option
               v-for="item in settings.models"
@@ -51,6 +53,7 @@ import { useSettingsStore } from '@renderer/stores/settings'
 
 const settings = useSettingsStore()
 
+/** 按 Provider 提示该用哪一类 Key。 */
 const keyHint = computed(() => {
   if (settings.provider === 'minimax-cn') {
     return 'minimax-cn 使用国内站 Key（环境变量 MINIMAX_CN_API_KEY）。401 invalid api key 表示 Key 无效或用了国际站 Key。'

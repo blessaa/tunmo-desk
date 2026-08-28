@@ -10,6 +10,7 @@ dist_electron
 coverage
 release
 thumbs.db
+src/package/.env
 
 # electron-builder unpacked output must not live in the source tree
 /resources/

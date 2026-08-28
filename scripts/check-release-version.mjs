@@ -1,7 +1,12 @@
+/**
+ * 发版前校验：git 标签 vX.Y.Z 必须和 package.json / package-lock 根 version 一致。
+ * 不一致时 electron-builder 会按旧 version 覆盖已有 GitHub Release。
+ */
 import { readFileSync, existsSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
+/** 仓库根目录。 */
 const root = join(dirname(fileURLToPath(import.meta.url)), '..')
 const pkg = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8'))
 const lockPath = join(root, 'package-lock.json')
@@ -11,6 +16,7 @@ function fail(message) {
   process.exit(1)
 }
 
+/** package.json 里的应用版本。 */
 const version = String(pkg.version || '').trim()
 if (!/^\d+\.\d+\.\d+$/.test(version)) {
   fail(`package.json version 必须是 x.y.z，当前是 "${version}"`)
@@ -28,6 +34,7 @@ if (existsSync(lockPath)) {
   }
 }
 
+/** 命令行参数或 GITHUB_REF_NAME，例如 v0.3.1。 */
 const rawTag = (process.argv[2] || process.env.GITHUB_REF_NAME || '').trim()
 const inCi = process.env.GITHUB_ACTIONS === 'true' || process.env.CI === 'true'
 
