@@ -141,8 +141,11 @@ export async function downloadUpdate(): Promise<void> {
 }
 
 export function quitAndInstall(): void {
-  for (const win of BrowserWindow.getAllWindows()) {
-    win.destroy()
-  }
+  // Do not destroy windows first. That fires window-all-closed → app.quit()
+  // before quitAndInstall can spawn the NSIS installer with --force-run.
+  // electron-updater then falls back to autoInstallOnAppQuit, which installs
+  // silently WITHOUT restarting (install(true, false)).
+  autoUpdater.autoInstallOnAppQuit = false
+  log.info('[updater] quitAndInstall')
   autoUpdater.quitAndInstall(true, true)
 }
