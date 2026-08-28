@@ -13,6 +13,16 @@ files:
   - '!{tsconfig.json,tsconfig.node.json,tsconfig.web.json}'
   - '!.cursor/*'
   - '!.github/*'
+  - '!resources{,/**}'
+  - '!locales{,/**}'
+  - '!*.dll'
+  - '!*.exe'
+  - '!*.pak'
+  - '!*.bin'
+  - '!*.dat'
+  - '!LICENSE.electron.txt'
+  - '!LICENSES.chromium.html'
+  - '!vk_swiftshader_icd.json'
 extraResources:
   - from: config/release.json
     to: release.json
@@ -51,6 +61,7 @@ nsis:
   createDesktopShortcut: always
   oneClick: false
   allowToChangeInstallationDirectory: true
+  deleteAppDataOnUninstall: true
 dmg:
   artifactName: ${name}-${version}.${ext}
 npmRebuild: false
