@@ -34,6 +34,11 @@ function loadReleaseConfig(): ReleaseConfig {
   }
 }
 
+function isFeedNotReady(err: unknown): boolean {
+  const message = err instanceof Error ? err.message : String(err)
+  return /Cannot find latest(-mac|-linux)?\.yml|HttpError:\s*404/i.test(message)
+}
+
 function send(channel: string, payload?: unknown): void {
   for (const win of BrowserWindow.getAllWindows()) {
     win.webContents.send(channel, payload)
@@ -73,7 +78,13 @@ export function setupUpdater(): void {
   })
   autoUpdater.on('error', (err) => {
     downloading = false
-    send('updater:error', err.message)
+    if (isFeedNotReady(err)) {
+      log.info('[updater] release assets not ready yet, will retry later')
+      send('updater:not-available')
+      return
+    }
+    log.error('[updater]', err)
+    send('updater:error')
   })
 
   if (!app.isPackaged) return
@@ -102,13 +113,31 @@ export async function checkForUpdates(): Promise<void> {
   checking = true
   try {
     await autoUpdater.checkForUpdates()
+  } catch (err) {
+    if (isFeedNotReady(err)) {
+      log.info('[updater] release assets not ready yet, will retry later')
+      send('updater:not-available')
+    } else {
+      log.error('[updater] check', err)
+    }
   } finally {
     checking = false
   }
 }
 
 export async function downloadUpdate(): Promise<void> {
-  await autoUpdater.downloadUpdate()
+  try {
+    await autoUpdater.downloadUpdate()
+  } catch (err) {
+    log.error('[updater] download', err)
+    const message = err instanceof Error ? err.message : String(err)
+    if (message.includes('check update first')) {
+      await autoUpdater.checkForUpdates()
+      await autoUpdater.downloadUpdate()
+      return
+    }
+    send('updater:error')
+  }
 }
 
 export function quitAndInstall(): void {

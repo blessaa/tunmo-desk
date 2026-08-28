@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
+import { ElMessage } from 'element-plus'
 import type { UpdateInfo, UpdateProgress } from '../../../preload/index.d'
 
 export const useUpdaterStore = defineStore('updater', () => {
@@ -37,18 +38,30 @@ export const useUpdaterStore = defineStore('updater', () => {
         info.value = (payload as UpdateInfo) ?? info.value
       }
       if (channel === 'updater:error') {
-        status.value = 'error'
-        error.value = String(payload ?? 'update error')
+        if (status.value === 'downloading') {
+          status.value = 'available'
+          ElMessage.error('下载失败，请稍后重试')
+        } else if (status.value !== 'available' && status.value !== 'ready') {
+          status.value = 'none'
+        }
+        error.value = ''
       }
     })
   }
 
   async function installNow(): Promise<void> {
-    if (status.value === 'ready') {
-      await window.tunmo.updater.install()
-      return
+    try {
+      if (status.value === 'ready') {
+        await window.tunmo.updater.install()
+        return
+      }
+      if (status.value !== 'available' && status.value !== 'downloading') {
+        await window.tunmo.updater.check()
+      }
+      await window.tunmo.updater.download()
+    } catch {
+      ElMessage.error('更新失败，请稍后重试')
     }
-    await window.tunmo.updater.download()
   }
 
   function later(): void {

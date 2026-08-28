@@ -1,13 +1,8 @@
 <template>
   <div v-if="show" class="banner">
     <div>
-      <strong>发现新版本 {{ updater.info?.version }}</strong>
-      <span class="muted"> 是否现在更新？</span>
-      <span v-if="updater.status === 'downloading'" class="muted">
-        下载中 {{ Math.round(updater.progress?.percent ?? 0) }}%
-      </span>
-      <span v-if="updater.status === 'ready'" class="muted"> 已下载完成，将重启安装。</span>
-      <span v-if="updater.status === 'error'" class="muted"> {{ updater.error }}</span>
+      <strong>发现新版本{{ versionText }}</strong>
+      <span class="muted"> {{ hint }}</span>
     </div>
     <div class="actions">
       <el-button size="small" @click="updater.later">稍后</el-button>
@@ -26,7 +21,22 @@ const updater = useUpdaterStore()
 
 const show = computed(() => {
   if (updater.dismissed) return false
-  return ['available', 'downloading', 'ready', 'error'].includes(updater.status)
+  return ['available', 'downloading', 'ready'].includes(updater.status)
+})
+
+const versionText = computed(() => {
+  const version = updater.info?.version
+  return version ? ` ${version}` : ''
+})
+
+const hint = computed(() => {
+  if (updater.status === 'downloading') {
+    return `正在下载 ${Math.round(updater.progress?.percent ?? 0)}%`
+  }
+  if (updater.status === 'ready') {
+    return '已下载完成，将覆盖安装并重启。'
+  }
+  return '是否现在更新？'
 })
 </script>
 

@@ -75,4 +75,4 @@ publish:
   provider: github
   owner: blessaa
   repo: tunmo-desk
-  releaseType: release
+  releaseType: draft
