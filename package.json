@@ -1,6 +1,6 @@
 {
   "name": "tunmo-desk",
-  "version": "0.2.0",
+  "version": "0.2.2",
   "description": "图墨桌面端",
   "main": "./out/main/index.js",
   "author": "tunmo",
