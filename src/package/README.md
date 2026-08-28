@@ -31,12 +31,12 @@ npm 包固定依赖 `@earendil-works/pi-coding-agent@0.84.1`，默认直接启�
 安装与检查：
 
 ```bash
-npm install --ignore-scripts
+pnpm install --ignore-scripts
 cp .env.example .env
-npm run check
-npm test
-npm run build
-npm start
+pnpm check
+pnpm test
+pnpm build
+pnpm start
 ```
 
 从 npm 安装并启动：
@@ -56,7 +56,7 @@ npx tunmo-backend
 开发模式：
 
 ```bash
-npm run dev
+pnpm dev
 ```
 
 ## 连接 Pi
@@ -97,9 +97,9 @@ PI_SESSION_DIR=/persistent/pi/sessions
 
 1. 在独立目录获取或 fork 新 Pi release；
 2. 把 `package.json` 中的 `@earendil-works/pi-coding-agent` 固定到对应版本；
-3. 执行 `npm install --ignore-scripts` 更新依赖和 lockfile；
-4. 执行 `npm run vendor:pi -- /absolute/path/to/new/pi-main` 同步源码；
-5. 执行 `npm run verify:pi-vendor`，确保运行依赖、vendor 源码和 RPC entry 版本一致；
+3. 执行 `pnpm install --ignore-scripts` 更新依赖和 lockfile；
+4. 执行 `pnpm vendor:pi -- /absolute/path/to/new-pi-main` 同步源码；
+5. 执行 `pnpm verify:pi-vendor`，确保运行依赖、vendor 源码和 RPC entry 版本一致；
 6. 运行检查、测试，并在测试环境执行真实 provider 的 send、tool、interrupt 和 reconnect 验收。
 
 同步脚本只读取 Pi 目录并重建 `tunmo-backend/vendor/pi-main`，不会修改 Pi fork，也不需要把后端代码合并进 Pi。
@@ -109,9 +109,9 @@ PI_SESSION_DIR=/persistent/pi/sessions
 发布前执行：
 
 ```bash
-npm run check
-npm test
-npm pack --dry-run
+pnpm check
+pnpm test
+pnpm pack --dry-run
 npm publish
 ```
 

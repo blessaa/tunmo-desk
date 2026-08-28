@@ -24,8 +24,10 @@
     "access": "public"
   },
   "engines": {
-    "node": ">=22.19.0"
+    "node": ">=22.19.0",
+    "pnpm": ">=9"
   },
+  "packageManager": "pnpm@9.15.9",
   "scripts": {
     "dev": "tsx watch src/main.ts",
     "build": "tsc -p tsconfig.build.json",
@@ -36,8 +38,8 @@
     "vendor:pi": "node scripts/vendor-pi.mjs",
     "verify:pi-vendor": "node scripts/verify-pi-vendor.mjs",
     "smoke:package": "node scripts/smoke-package.mjs",
-    "prepack": "npm run build && npm run verify:pi-vendor",
-    "prepublishOnly": "npm run check && npm test"
+    "prepack": "pnpm run build && pnpm run verify:pi-vendor",
+    "prepublishOnly": "pnpm run check && pnpm test"
   },
   "dependencies": {
     "@earendil-works/pi-coding-agent": "0.84.1",

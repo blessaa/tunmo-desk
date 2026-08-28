@@ -3,9 +3,9 @@
 ## 自动化命令
 
 ```bash
-npm run check
-npm test
-npm run build
+pnpm check
+pnpm test
+pnpm build
 ```
 
 测试不读取真实 provider key，不发起付费模型调用，也不写入 `pi-main`。Pi 进程协议通过独立的 JSONL fixture 子进程进行 contract test。

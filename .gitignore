@@ -1,4 +1,7 @@
 node_modules
+package-lock.json
+.pnpm-store
+pnpm-debug.log*
 out
 dist
 dist_electron

@@ -32,6 +32,8 @@ function skip(rel) {
   if (posix === '.env' || posix.startsWith('.env.')) return true
   if (posix.includes('/.bin/') || posix.startsWith('.bin/') || posix.endsWith('/.bin')) return true
   if (posix.endsWith('.map') || posix.endsWith('.d.ts')) return true
+  if (posix.startsWith('node_modules/.pnpm')) return true
+  if (posix.startsWith('node_modules/.ignored')) return true
   if (posix.startsWith('node_modules/@fastify/swagger')) return true
   return false
 }
@@ -90,8 +92,9 @@ function collect(dir, files, visited) {
       } catch {
         continue
       }
-      if (target.isDirectory()) collect(real, files, visited)
-      else if (target.isFile()) files.push(real)
+      // 按链接路径收录（node_modules/fastify），不要收成 .pnpm 真实路径，否则运行时 import 找不到包。
+      if (target.isDirectory()) collect(full, files, visited)
+      else if (target.isFile()) files.push(full)
       continue
     }
 
@@ -107,7 +110,7 @@ if (!existsSync(join(src, 'dist/main.js'))) {
   throw new Error('缺少 src/package/dist/main.js，请先执行 backend bundle')
 }
 if (!existsSync(join(src, 'node_modules/@earendil-works/pi-coding-agent'))) {
-  throw new Error('缺少 Pi 依赖，请先在 src/package 执行 npm install')
+  throw new Error('缺少 Pi 依赖，请先在 src/package 执行 pnpm install --ignore-scripts')
 }
 
 mkdirSync(outDir, { recursive: true })
