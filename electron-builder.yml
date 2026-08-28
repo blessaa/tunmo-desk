@@ -26,6 +26,8 @@ files:
 extraResources:
   - from: config/release.json
     to: release.json
+  # electron-builder 的 extraResources 过滤器会丢掉拷贝根上的 node_modules
+  # （它假定依赖由主应用 asar 收集）。后端是独立 Node 进程，必须再拷一份。
   - from: src/package
     to: tunmo-backend
     filter:
@@ -34,6 +36,9 @@ extraResources:
       - '!src{,/**}'
       - '!test{,/**}'
       - '!docs{,/**}'
+      - '!node_modules{,/**}'
+  - from: src/package/node_modules
+    to: tunmo-backend/node_modules
 asarUnpack:
   - '**/*.node'
   - '**/*.wasm'

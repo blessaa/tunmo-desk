@@ -1,6 +1,6 @@
 {
   "name": "tunmo-desk",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "图墨桌面端",
   "main": "./out/main/index.js",
   "author": "tunmo",
@@ -11,7 +11,7 @@
   },
   "scripts": {
     "backend:prepare": "npm install --ignore-scripts --prefix src/package",
-    "backend:build": "npm run backend:prepare && npm run build --prefix src/package",
+    "backend:build": "npm run backend:prepare && npm run build --prefix src/package && npm prune --omit=dev --prefix src/package",
     "dev": "npm run backend:prepare && electron-vite dev",
     "start": "electron-vite preview",
     "build": "npm run backend:build && electron-vite build",

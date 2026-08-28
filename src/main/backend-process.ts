@@ -65,11 +65,21 @@ function apiKeyEnv(provider: string, apiKey: string): NodeJS.ProcessEnv {
 function resolveEntry(root: string): { args: string[]; missing: string } {
   /** 打包/本地 build 后的入口。 */
   const distEntry = join(root, 'dist/main.js')
+  /** 后端运行依赖；安装包必须单独 extraResources 拷贝，否则 dist 能找到但进程秒退。 */
+  const runtimeDep = join(root, 'node_modules/fastify')
   /** tsx CLI，用来在开发时直接跑 TypeScript。 */
   const tsxCli = join(root, 'node_modules/tsx/dist/cli.mjs')
   /** 后端 TypeScript 入口。 */
   const srcEntry = join(root, 'src/main.ts')
-  if (existsSync(distEntry)) return { args: [distEntry], missing: '' }
+  if (existsSync(distEntry)) {
+    if (!existsSync(runtimeDep)) {
+      return {
+        args: [],
+        missing: `tunmo-backend 缺少 node_modules（${runtimeDep}）。安装包 extraResources 需要单独拷贝后端依赖`
+      }
+    }
+    return { args: [distEntry], missing: '' }
+  }
   if (existsSync(tsxCli) && existsSync(srcEntry)) return { args: [tsxCli, srcEntry], missing: '' }
   return {
     args: [],
