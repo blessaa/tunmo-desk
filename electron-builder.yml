@@ -73,7 +73,7 @@ nsis:
   differentialPackage: true
   installerLanguages:
     - zh_CN
-    - English
+    - en_US
 dmg:
   artifactName: ${name}-${version}.${ext}
 npmRebuild: false
