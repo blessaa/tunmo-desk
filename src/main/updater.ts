@@ -161,9 +161,10 @@ export async function downloadUpdate(): Promise<void> {
 /**
  * 用户点「安装并重启」。
  * 不要先 destroy 窗口，否则会先 app.quit，安装包不带 --force-run，装完不会自动打开。
+ * Windows 不要静默：NSIS 需要显示复制进度，否则覆盖大 asar 时像死机。
  */
 export function quitAndInstall(): void {
   autoUpdater.autoInstallOnAppQuit = false
   log.info('[updater] quitAndInstall')
-  autoUpdater.quitAndInstall(true, true)
+  autoUpdater.quitAndInstall(false, true)
 }

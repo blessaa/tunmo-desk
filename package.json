@@ -1,6 +1,6 @@
 {
   "name": "tunmo-desk",
-  "version": "0.4.5",
+  "version": "0.4.6",
   "description": "图墨桌面端",
   "main": "./out/main/index.js",
   "author": "tunmo",
@@ -21,7 +21,7 @@
     "typecheck:node": "tsc --noEmit -p tsconfig.node.json --composite false",
     "typecheck:web": "vue-tsc --noEmit -p tsconfig.web.json --composite false",
     "typecheck": "pnpm run typecheck:node && pnpm run typecheck:web",
-    "postinstall": "electron-builder install-app-deps",
+    "postinstall": "node node_modules/electron/install.js && electron-builder install-app-deps",
     "build:unpack": "pnpm run build && electron-builder --dir",
     "build:win": "pnpm run build && electron-builder --win --x64 --config",
     "build:mac": "pnpm run build && electron-builder --mac --config",

@@ -71,6 +71,9 @@ nsis:
   allowToChangeInstallationDirectory: true
   deleteAppDataOnUninstall: true
   differentialPackage: true
+  installerLanguages:
+    - zh_CN
+    - English
 dmg:
   artifactName: ${name}-${version}.${ext}
 npmRebuild: false
