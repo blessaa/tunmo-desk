@@ -13,11 +13,17 @@ export const useUpdaterStore = defineStore('updater', () => {
 
   function bind(): () => void {
     return window.tunmo.updater.on((channel, payload) => {
-      if (channel === 'updater:checking') status.value = 'checking'
+      if (channel === 'updater:checking') {
+        if (['available', 'downloading', 'ready'].includes(status.value)) return
+        status.value = 'checking'
+      }
       if (channel === 'updater:available') {
+        const next = (payload as UpdateInfo) ?? null
+        if (next?.version && next.version !== info.value?.version) {
+          dismissed.value = false
+        }
         status.value = 'available'
-        info.value = (payload as UpdateInfo) ?? null
-        dismissed.value = false
+        info.value = next
       }
       if (channel === 'updater:not-available' || channel === 'updater:dev-skip') {
         status.value = 'none'

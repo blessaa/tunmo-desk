@@ -15,7 +15,7 @@ import {
   stopPiAgent,
   type ChatStreamEvent
 } from './pi-agent'
-import { checkForUpdates, downloadUpdate, quitAndInstall, setupUpdater } from './updater'
+import { checkForUpdates, downloadUpdate, quitAndInstall, setupUpdater, stopUpdateChecks } from './updater'
 
 function createWindow(): void {
   const mainWindow = new BrowserWindow({
@@ -105,13 +105,13 @@ app.whenReady().then(() => {
   createWindow()
   void startPiAgent()
 
-  setTimeout(() => {
-    void checkForUpdates()
-  }, 2500)
-
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()
   })
+})
+
+app.on('before-quit', () => {
+  stopUpdateChecks()
 })
 
 app.on('window-all-closed', () => {

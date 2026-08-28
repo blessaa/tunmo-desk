@@ -6,6 +6,13 @@ import electronUpdater from 'electron-updater'
 
 const { autoUpdater } = electronUpdater
 
+const FIRST_CHECK_MS = 2500
+const CHECK_INTERVAL_MS = 5 * 60 * 1000
+
+let checkTimer: ReturnType<typeof setInterval> | undefined
+let checking = false
+let downloading = false
+
 export interface ReleaseConfig {
   github: { owner: string; repo: string }
   gitee: { owner: string; repo: string; updateUrl: string }
@@ -38,6 +45,7 @@ export function setupUpdater(): void {
   autoUpdater.logger = log
   autoUpdater.autoDownload = config.update.autoDownload
   autoUpdater.autoInstallOnAppQuit = true
+  autoUpdater.disableWebInstaller = true
 
   if (config.update.source === 'gitee' && config.gitee.updateUrl && !config.gitee.updateUrl.includes('YOUR_')) {
     autoUpdater.setFeedURL({
@@ -55,9 +63,34 @@ export function setupUpdater(): void {
   autoUpdater.on('checking-for-update', () => send('updater:checking'))
   autoUpdater.on('update-available', (info) => send('updater:available', info))
   autoUpdater.on('update-not-available', (info) => send('updater:not-available', info))
-  autoUpdater.on('download-progress', (progress) => send('updater:progress', progress))
-  autoUpdater.on('update-downloaded', (info) => send('updater:downloaded', info))
-  autoUpdater.on('error', (err) => send('updater:error', err.message))
+  autoUpdater.on('download-progress', (progress) => {
+    downloading = true
+    send('updater:progress', progress)
+  })
+  autoUpdater.on('update-downloaded', (info) => {
+    downloading = false
+    send('updater:downloaded', info)
+  })
+  autoUpdater.on('error', (err) => {
+    downloading = false
+    send('updater:error', err.message)
+  })
+
+  if (!app.isPackaged) return
+
+  setTimeout(() => {
+    void checkForUpdates()
+    checkTimer = setInterval(() => {
+      void checkForUpdates()
+    }, CHECK_INTERVAL_MS)
+  }, FIRST_CHECK_MS)
+}
+
+export function stopUpdateChecks(): void {
+  if (checkTimer) {
+    clearInterval(checkTimer)
+    checkTimer = undefined
+  }
 }
 
 export async function checkForUpdates(): Promise<void> {
@@ -65,7 +98,13 @@ export async function checkForUpdates(): Promise<void> {
     send('updater:dev-skip')
     return
   }
-  await autoUpdater.checkForUpdates()
+  if (checking || downloading) return
+  checking = true
+  try {
+    await autoUpdater.checkForUpdates()
+  } finally {
+    checking = false
+  }
 }
 
 export async function downloadUpdate(): Promise<void> {
@@ -73,5 +112,8 @@ export async function downloadUpdate(): Promise<void> {
 }
 
 export function quitAndInstall(): void {
-  autoUpdater.quitAndInstall()
+  for (const win of BrowserWindow.getAllWindows()) {
+    win.destroy()
+  }
+  autoUpdater.quitAndInstall(true, true)
 }
